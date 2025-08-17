@@ -9,14 +9,14 @@
 <body>
     <div>
     Signup
-    <input type="text" name="username" placeholder="Username">
-    <input type="password" name="password" placeholder="Password">
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
     <button onclick="signup()">Submit</button>
 </div>
     <div>
     Signin
-    <input type="text" name="username" placeholder="Username">
-    <input type="password" name="password" placeholder="Password">
+    <input type="text" id="signin-username" placeholder="Username">
+    <input type="password" id="signin-password" placeholder="Password">
     <button onclick="signin()">Submit</button>
 </div>
 <div>
@@ -66,7 +66,7 @@ async function getUserInformation() {
                 Authorization: token
             }
         });
-        document.getElementById("information").innerHTML = response.data.username;
+        document.getElementById("information").innerHTML = "username: " + response.data.username;
     }
 }
 getUserInformation();
