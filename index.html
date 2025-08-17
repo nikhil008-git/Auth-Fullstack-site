@@ -21,7 +21,10 @@
 </div>
 <div>
     User information: 
-    <div id="information"></div>
+    <div id="information">
+        <button onabort="getUserInformation()">Refresh it bro dont click </button>
+
+    </div>
 </div>
 <div>
     <button onclick="logout()">Logout</button>
@@ -58,18 +61,17 @@ async function logout() {
 
 
 async function getUserInformation() {
-    const token = localStorage.getItem("token");
+    
 
-    if (token) {
         const response = await axios.get("http://localhost:3000/me", {
             headers: {
-                Authorization: token
+                token: localStorage.getItem("token")
             }
         });
-        document.getElementById("information").innerHTML = "username: " + response.data.username;
+        document.getElementById("information").innerHTML = "username: " + response.data.username + " password: " + response.data.password;
     }
-}
-getUserInformation();
+
+console.log(getUserInformation());
 </script>
 
 </body>
