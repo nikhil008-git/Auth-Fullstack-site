@@ -13,10 +13,10 @@ function logger(req,res,next){
 
 //app.use(express.static("./public"))
 app.get("/", function(req, res) {
-    res.sendFile(__dirname + "/public/index.html")   ///for local host to frontend like smae port or endpoint to get rid of cors sort 
-    
+    res.sendFile("D:/webdev-cohort/jwt_try/public/index.html")   ///for local host to frontend like smae port or endpoint to get rid of cors sort
+
 })
-// SIGNUP     
+// SIGNUP
 app.post
 ('/signup',logger, (req, res) => {
     const username = req.body.username;
