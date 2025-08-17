@@ -1,172 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auth site</title>
-</head>
-<style>
-    /* Reset & base styles */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+import express from 'express';
+import jwt from 'jsonwebtoken';
+const JWT_SECRET = "nickhere";
+
+const app = express();
+app.use(express.json());
+
+let users = [];
+function logger(req,res,next){
+    console.log(`request method is ${req.method}`)
+    next()
 }
 
-body {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #333;
-}
+//app.use(express.static("./public"))
+app.get("/", function(req, res) {
+    res.sendFile("D:/webdev-cohort/jwt_try/public/index.html")   ///for local host to frontend like smae port or endpoint to get rid of cors sort
 
-.container {
-  background: #fff;
-  padding: 2rem 2.5rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  width: 400px;
-  max-width: 90%;
-  text-align: center;
-}
+})
+// SIGNUP
+app.post
+('/signup',logger, (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
 
-h2 {
-  margin-bottom: 1rem;
-  font-size: 1.6rem;
-  color: #1e3c72;
-}
-
-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-  margin-bottom: 2rem;
-}
-
-input {
-  padding: 0.8rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  font-size: 1rem;
-  outline: none;
-  transition: 0.3s;
-}
-
-input:focus {
-  border-color: #1e3c72;
-  box-shadow: 0 0 6px rgba(30,60,114,0.3);
-}
-
-button {
-  padding: 0.8rem 1rem;
-  border: none;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  color: #fff;
-  font-size: 1rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-button:active {
-  transform: scale(0.97);
-}
-
-#information {
-  margin: 1rem 0;
-  padding: 1rem;
-  background: #f4f6fb;
-  border-radius: 10px;
-  font-size: 0.9rem;
-  color: #444;
-  text-align: left;
-  word-wrap: break-word;
-}
-
-.logout-btn {
-  margin-top: 1.5rem;
-  width: 100%;
-  background: crimson;
-}
-
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
-<body>
-    <div>
-    Signup
-    <input type="text" id="username" placeholder="Username">
-    <input type="password" id="password" placeholder="Password">
-    <button onclick="signup()">Submit</button>
-</div>
-    <div>
-    Signin
-    <input type="text" id="signin-username" placeholder="Username">
-    <input type="password" id="signin-password" placeholder="Password">
-    <button onclick="signin()">Submit</button>
-</div>
-<div>
-    User information: 
-    <div id="information">
-        <button onabort="getUserInformation()">Refresh it bro dont click </button>
-
-    </div>
-</div>
-<div>
-    <button onclick="logout()">Logout</button>
-</div>
-
-<script>
-    async function signup() {
-    const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
-
-    const response = await axios.post("http://localhost:3000/signup", {
-        username: username,
+    users.push({
+        username: username,  
         password: password
-    })
-    alert("Signed up successfully");
-}
-async function signin() {
-    const username = document.getElementById("signin-username").value;
-    const password = document.getElementById("signin-password").value;
+    });
 
-    const response = await axios.post("http://localhost:3000/signin", {
-        username: username,
-        password: password
-    });    
-   
-    localStorage.setItem("token", response.data.token);  //local storage hota hai in inspect => application
+    res.send({
+        message: "User signed up successfully"
+    });
 
-    alert("Signed in successfully");
-}
+    console.log(users);
+});
 
-async function logout() {
-    localStorage.removeItem("token");
-}
+// SIGNIN
+app.post('/signin',logger, (req, res) => {
+    const username = req.body.username;
+    const password = req.body.password;
 
-
-async function getUserInformation() {
+    const user = users.find(user => user.username === username && user.password === password);
     
+    if (user) { 
+        const token = jwt.sign(
+            { username: user.username },    
+            JWT_SECRET
+        );
 
-        const response = await axios.get("http://localhost:3000/me", {
-            headers: {
-                token: localStorage.getItem("token")
-            }
+        res.send({
+            message: "Signin successful",
+            token: token
         });
-        document.getElementById("information").innerHTML = "username: " + response.data.username + " password: " + response.data.password;
+    } else {
+        res.status(401).send({
+            message: "Invalid username or password"
+        });
     }
+});
 
-console.log(getUserInformation());
-</script>
+function auth(req,res,next){
+    const token = req.headers.token;
+    const decodedData = jwt.verify(token, JWT_SECRET);
 
-</body>
-</html>
+    if(decodedData.username){
+        req.username = decodedData.username;
+        next()
+    }
+    else{
+        res.json({
+            message : "you are not logged in!!"
+        })
+    } 
+}
+// Example protected route
+app.get("/me", auth ,(req, res) => {
+  
+
+    const user = users.find(user => user.username === req.username);
+
+    res.json({
+        username: user.username,
+        password: user.password
+    });
+});
+
+ 
+app.listen(3000, () => {
+    console.log("Server is running on port 3000");
+});
